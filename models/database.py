@@ -15,26 +15,29 @@ class Database:
         return cls._instance
 
     def _initialize(self):
-        # Obtener ruta absoluta
+        # Obtener ruta absoluta de la base de datos
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.db_path = os.path.join(base_dir, 'base_datos', 'textilpro.db')
-        print(f"🔍 Intentando conectar a: {self.db_path}")
         self.connection = None
         self.connect()
 
     def connect(self):
         """Establecer conexión con SQLite"""
         try:
-            # Verificar que el archivo existe
+            # Verificar si el archivo existe
             if not os.path.exists(self.db_path):
-                messagebox.showerror("Error de Base de Datos",
-                                   f"No se encuentra la base de datos:\n{self.db_path}\n\nEjecuta primero diagnostico_bd.py")
+                messagebox.showerror(
+                    "Error de Base de Datos",
+                    f"No se encuentra la base de datos:\n{self.db_path}\n\n"
+                    f"Ejecuta primero: python crear_bd_final.py"
+                )
                 return False
 
             self.connection = sqlite3.connect(self.db_path)
             self.connection.row_factory = sqlite3.Row
             print(f"✅ Conexión exitosa a: {self.db_path}")
             return True
+
         except Exception as e:
             messagebox.showerror("Error de Base de Datos",
                                f"No se pudo conectar:\n{e}")

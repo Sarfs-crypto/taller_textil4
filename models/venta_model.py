@@ -5,7 +5,6 @@ from models.database import Database
 from models.producto_model import ProductoModel
 from datetime import datetime
 
-
 class VentaModel:
     def __init__(self):
         self.db = Database()

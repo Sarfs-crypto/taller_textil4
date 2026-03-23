@@ -128,3 +128,9 @@ class ProductoController:
     def apply_theme(self, theme):
         if self.view:
             self.view.apply_theme(theme)
+
+def cargar_producto_para_editar(self, producto):
+    """Cargar producto para editar"""
+    self.producto_actual = producto
+    if self.view:
+        self.view.cargar_datos_formulario(producto)

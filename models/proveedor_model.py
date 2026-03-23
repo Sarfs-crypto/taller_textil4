@@ -3,7 +3,6 @@ Modelo para gestión de proveedores
 """
 from models.database import Database
 
-
 class ProveedorModel:
     def __init__(self):
         self.db = Database()

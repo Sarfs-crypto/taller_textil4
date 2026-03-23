@@ -116,3 +116,9 @@ class ProveedorController:
     def apply_theme(self, theme):
         if self.view:
             self.view.apply_theme(theme)
+
+def cargar_proveedor_para_editar(self, proveedor):
+    """Cargar proveedor para editar"""
+    self.proveedor_actual = proveedor
+    if self.view:
+        self.view.cargar_datos_formulario(proveedor)

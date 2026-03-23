@@ -3,7 +3,6 @@ Modelo para gestión de productos
 """
 from models.database import Database
 
-
 class ProductoModel:
     def __init__(self):
         self.db = Database()
@@ -17,8 +16,9 @@ class ProductoModel:
         """
         params = (
             datos['codigo'], datos['nombre'], datos['descripcion'], datos['categoria'],
-            datos['talla'], datos['color'], datos['precio_compra'], datos['precio_venta'],
-            datos['stock'], datos['stock_minimo'], datos.get('imagen_path')
+            datos['talla'], datos['color'], float(datos['precio_compra']),
+            float(datos['precio_venta']), int(datos['stock']), int(datos['stock_minimo']),
+            datos.get('imagen_path')
         )
         return self.db.execute_query(query, params)
 
@@ -31,8 +31,9 @@ class ProductoModel:
         """
         params = (
             datos['codigo'], datos['nombre'], datos['descripcion'], datos['categoria'],
-            datos['talla'], datos['color'], datos['precio_compra'], datos['precio_venta'],
-            datos['stock'], datos['stock_minimo'], datos.get('imagen_path'), id
+            datos['talla'], datos['color'], float(datos['precio_compra']),
+            float(datos['precio_venta']), int(datos['stock']), int(datos['stock_minimo']),
+            datos.get('imagen_path'), id
         )
         return self.db.execute_query(query, params)
 

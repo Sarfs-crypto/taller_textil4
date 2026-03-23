@@ -1,8 +1,3 @@
-"""
-TextilPro - Sistema de Gestión para Industria Textil
-Autor: Basado en taller_PO-industria-textil
-"""
-
 import tkinter as tk
 from controllers.main_controller import MainController
 
@@ -12,13 +7,13 @@ class TextilProApp:
         self.root.title("TextilPro - Sistema de Gestión Textil")
         self.root.geometry("1400x800")
 
-        # Configurar favicon
+        # Favicon (opcional)
         try:
             self.root.iconbitmap("assets/favicon.ico")
         except:
             pass
 
-        # Iniciar controlador principal
+        # Iniciar controlador (esto ya conecta a la BD)
         self.controller = MainController(self.root)
 
     def run(self):
