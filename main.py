@@ -6,16 +6,7 @@ class TextilProApp:
         self.root = tk.Tk()
         self.root.title("TextilPro - Sistema de Gestión Textil")
         self.root.geometry("1400x800")
-
-        # Favicon (opcional)
-        try:
-            self.root.iconbitmap("assets/favicon.ico")
-        except:
-            pass
-
-        # Iniciar controlador (esto ya conecta a la BD)
         self.controller = MainController(self.root)
-
     def run(self):
         self.root.mainloop()
 
