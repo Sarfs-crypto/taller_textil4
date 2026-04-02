@@ -1,173 +1,103 @@
-"""
-Módulo de exportación a Excel y PDF
-"""
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.styles import Font, PatternFill, Alignment
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib.pagesizes import landscape, letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
-import tkinter as tk
 from tkinter import filedialog, messagebox
 from datetime import datetime
-import os
 
 
 class Exporters:
 
     @staticmethod
-    def exportar_a_excel(datos, columnas, titulo="Reporte"):
-        """Exportar datos a Excel"""
-        try:
-            # Seleccionar ubicación
-            filename = filedialog.asksaveasfilename(
-                defaultextension=".xlsx",
-                filetypes=[("Excel files", "*.xlsx")],
-                initialfile=f"{titulo}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-            )
+    def exportar_excel(datos, columnas, titulo):
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".xlsx",
+            filetypes=[("Excel files", "*.xlsx")],
+            initialfile=f"{titulo}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        )
+        if not filename:
+            return
 
-            if not filename:
-                return
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = titulo
 
-            # Crear libro y hoja
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            ws.title = titulo
+        # Estilos
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
 
-            # Estilos
-            header_font = Font(bold=True, color="FFFFFF", size=11)
-            header_fill = PatternFill(start_color="2C3E50", end_color="2C3E50", fill_type="solid")
-            center_alignment = Alignment(horizontal="center", vertical="center")
-            border = Border(
-                left=Side(style='thin'),
-                right=Side(style='thin'),
-                top=Side(style='thin'),
-                bottom=Side(style='thin')
-            )
+        # Encabezados
+        for col, header in enumerate(columnas, 1):
+            cell = ws.cell(row=1, column=col)
+            cell.value = header
+            cell.font = header_font
+            cell.fill = header_fill
 
-            # Escribir encabezados
-            for col, header in enumerate(columnas, 1):
-                cell = ws.cell(row=1, column=col)
-                cell.value = header
-                cell.font = header_font
-                cell.fill = header_fill
-                cell.alignment = center_alignment
-                cell.border = border
+        # Datos
+        for row_idx, row in enumerate(datos, 2):
+            for col_idx, col_name in enumerate(columnas, 1):
+                key = col_name.lower().replace(' ', '_')
+                valor = row.get(key, '')
+                ws.cell(row=row_idx, column=col_idx, value=valor)
 
-            # Escribir datos
-            for row_idx, row_data in enumerate(datos, 2):
-                for col_idx, col_name in enumerate(columnas, 1):
-                    # Buscar la clave en el diccionario (convertir a minúsculas y quitar espacios)
-                    key = col_name.lower().replace(' ', '_')
-                    valor = row_data.get(key, '')
+        # Ajustar columnas
+        for col in ws.columns:
+            max_len = 0
+            for cell in col:
+                try:
+                    max_len = max(max_len, len(str(cell.value)))
+                except:
+                    pass
+            ws.column_dimensions[col[0].column_letter].width = min(max_len + 2, 50)
 
-                    cell = ws.cell(row=row_idx, column=col_idx)
-                    cell.value = valor
-                    cell.border = border
-                    cell.alignment = Alignment(horizontal="left" if isinstance(valor, str) else "right")
-
-                    # Formato para números
-                    if isinstance(valor, (int, float)):
-                        if key in ['precio', 'precio_compra', 'precio_venta', 'total', 'subtotal']:
-                            cell.number_format = '#,##0.00'
-                            cell.value = float(valor)
-
-            # Ajustar ancho de columnas
-            for col in ws.columns:
-                max_length = 0
-                col_letter = col[0].column_letter
-                for cell in col:
-                    try:
-                        if len(str(cell.value)) > max_length:
-                            max_length = len(str(cell.value))
-                    except:
-                        pass
-                adjusted_width = min(max_length + 2, 50)
-                ws.column_dimensions[col_letter].width = adjusted_width
-
-            # Guardar archivo
-            wb.save(filename)
-            messagebox.showinfo("Éxito", f"Archivo exportado exitosamente:\n{filename}")
-
-        except Exception as e:
-            messagebox.showerror("Error", f"Error al exportar a Excel:\n{str(e)}")
+        wb.save(filename)
+        messagebox.showinfo("Éxito", f"Exportado a:\n{filename}")
 
     @staticmethod
-    def exportar_a_pdf(datos, columnas, titulo="Reporte"):
-        """Exportar datos a PDF"""
-        try:
-            filename = filedialog.asksaveasfilename(
-                defaultextension=".pdf",
-                filetypes=[("PDF files", "*.pdf")],
-                initialfile=f"{titulo}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-            )
+    def exportar_pdf(datos, columnas, titulo):
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF files", "*.pdf")],
+            initialfile=f"{titulo}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        )
+        if not filename:
+            return
 
-            if not filename:
-                return
+        doc = SimpleDocTemplate(filename, pagesize=landscape(letter))
+        elementos = []
+        styles = getSampleStyleSheet()
 
-            doc = SimpleDocTemplate(filename, pagesize=landscape(letter))
-            elementos = []
+        # Título
+        elementos.append(Paragraph(titulo, styles['Title']))
+        elementos.append(Spacer(1, 0.2 * inch))
+        elementos.append(Paragraph(f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
+        elementos.append(Spacer(1, 0.2 * inch))
 
-            styles = getSampleStyleSheet()
-            title_style = styles['Title']
-            normal_style = styles['Normal']
+        # Tabla
+        data = [columnas]
+        for row in datos:
+            fila = []
+            for col in columnas:
+                key = col.lower().replace(' ', '_')
+                valor = row.get(key, '')
+                if col == 'Precio' and valor:
+                    fila.append(f"${float(valor):,.2f}")
+                else:
+                    fila.append(str(valor))
+            data.append(fila)
 
-            # Título
-            titulo_text = Paragraph(f"<b>{titulo}</b>", title_style)
-            elementos.append(titulo_text)
-            elementos.append(Spacer(1, 0.2 * inch))
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+        elementos.append(table)
 
-            # Fecha
-            fecha_text = Paragraph(f"Fecha de generación: {datetime.now().strftime('%d/%m/%Y %H:%M')}", normal_style)
-            elementos.append(fecha_text)
-            elementos.append(Spacer(1, 0.2 * inch))
-
-            # Preparar datos para tabla
-            data = [columnas]
-            for row in datos:
-                fila = []
-                for col in columnas:
-                    key = col.lower().replace(' ', '_')
-                    valor = row.get(key, '')
-                    if isinstance(valor, (int, float)):
-                        if 'precio' in key or 'total' in key or 'subtotal' in key:
-                            fila.append(f"${valor:,.2f}")
-                        else:
-                            fila.append(str(valor))
-                    else:
-                        fila.append(str(valor)[:50] if valor else '')
-                data.append(fila)
-
-            table = Table(data, repeatRows=1)
-
-            style = TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2C3E50')),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#F8F9FA')),
-                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                ('FONTSIZE', (0, 1), (-1, -1), 8),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ])
-
-            for i in range(1, len(data)):
-                if i % 2 == 0:
-                    style.add('BACKGROUND', (0, i), (-1, i), colors.HexColor('#E9ECEF'))
-
-            table.setStyle(style)
-            elementos.append(table)
-
-            elementos.append(Spacer(1, 0.2 * inch))
-            pie = Paragraph(f"<i>Total de registros: {len(datos)}</i>", normal_style)
-            elementos.append(pie)
-
-            doc.build(elementos)
-            messagebox.showinfo("Éxito", f"PDF exportado exitosamente:\n{filename}")
-
-        except Exception as e:
-            messagebox.showerror("Error", f"Error al exportar a PDF:\n{str(e)}")
+        doc.build(elementos)
+        messagebox.showinfo("Éxito", f"PDF exportado:\n{filename}")

@@ -22,6 +22,17 @@ if os.path.exists(db_path):
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
+import mysql.connector
+
+def get_connection():
+    return mysql.connector.connect(
+        host='localhost',
+        database='textil_db',
+        user='root',
+        password='',
+        port='3306'
+    )
+
 # Tabla productos
 cursor.execute('''
 CREATE TABLE productos (
